@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../utils/my_colors.dart';
-import '../../utils/my_images.dart';
 import '../../models/user.dart';
 import '../../services/database_helper.dart';
 import '../widgets/basic_text_form_field.dart';
@@ -15,6 +14,22 @@ class RegisterView extends StatelessWidget {
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController = TextEditingController();
 
+  // Klucz formularza do walidacji
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
+  // Prosta funkcja walidująca adres e-mail
+  String? validateEmail(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Email cannot be empty';
+    }
+    // Proste wyrażenie regularne do walidacji e-maila
+    final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+$');
+    if (!emailRegex.hasMatch(value)) {
+      return 'Enter a valid email';
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -28,169 +43,149 @@ class RegisterView extends StatelessWidget {
               Navigator.pop(context);
             },
           ),
-          actions: [
-            Padding(
-              padding: const EdgeInsets.only(right: 0, top: 0),
-              child: Image.asset(
-                MyImages.circle,
-                width: 100,
-                height: 100,
-                fit: BoxFit.cover,
-              ),
-            ),
-          ],
         ),
-        body: Container(
-          color: MyColors.whiteColor,
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Tytuł
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                child: Text(
-                  'Sign Up',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: MyColors.purpleColor,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 30),
-
-              // Pole Username
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 5),
-                child: BasicTextFormField(
-                  hintText: "Username",
-                  prefixIcon: Icons.person_outline,
-                  controller: usernameController,
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Pole Email
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 5),
-                child: BasicTextFormField(
-                  hintText: "Email",
-                  prefixIcon: Icons.email_outlined,
-                  controller: emailController,
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Pole Password
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 5),
-                child: PasswordTextFormField(
-                  hintText: "Password",
-                  controller: passwordController,
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Pole Confirm Password
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 5),
-                child: PasswordTextFormField(
-                  hintText: "Confirm password",
-                  controller: confirmPasswordController,
-                ),
-              ),
-              const SizedBox(height: 30),
-
-              // Przycisk Sign Up
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 5),
-                child: ElevatedButton(
-                  onPressed: () async {
-                    // Walidacja hasła
-                    if (passwordController.text != confirmPasswordController.text) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("Passwords do not match")),
-                      );
-                      return;
-                    }
-
-                    // Tworzenie obiektu użytkownika
-                    final user = User(
-                      username: usernameController.text.trim(),
-                      email: emailController.text.trim(),
-                      password: passwordController.text.trim(),
-                    );
-
-                    try {
-                      // Dodanie użytkownika do bazy danych
-                      await DatabaseHelper.instance.registerUser(user);
-
-                      // Wyświetlenie komunikatu o sukcesie
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("Registration successful!")),
-                      );
-
-                      // Powrót do widoku logowania
-                      Navigator.pop(context);
-                    } catch (e) {
-                      // Obsługa błędu (np. powielony email)
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text("Error: $e")),
-                      );
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: const Size(double.infinity, 50),
-                    backgroundColor: MyColors.purpleColor,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                  ),
-                  child: const Text(
-                    'Sign Up',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-              const Spacer(),
-
-              // Tekst "Already have an account? Sign in"
-              GestureDetector(
-                onTap: () {
-                  Navigator.pop(context); // Powrót do poprzedniego widoku
-                },
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 20),
-                  child: Center(
-                    child: RichText(
-                      text: TextSpan(
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[600],
-                        ),
-                        children: [
-                          const TextSpan(
-                            text: 'Already have an account? ',
-                          ),
-                          TextSpan(
-                            text: 'Sign in',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: MyColors.purpleColor,
-                            ),
-                          ),
-                        ],
+        body: SingleChildScrollView(
+          child: Container(
+            color: MyColors.whiteColor,
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Tytuł
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    child: Text(
+                      'Sign Up',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: MyColors.purpleColor,
                       ),
                     ),
                   ),
-                ),
+                  const SizedBox(height: 30),
+
+                  // Pole Username
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 5),
+                    child: BasicTextFormField(
+                      hintText: "Username",
+                      prefixIcon: Icons.person_outline,
+                      controller: usernameController,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Username cannot be empty';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Pole Email
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 5),
+                    child: BasicTextFormField(
+                      hintText: "Email",
+                      prefixIcon: Icons.email_outlined,
+                      controller: emailController,
+                      validator: validateEmail,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Pole Password
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 5),
+                    child: PasswordTextFormField(
+                      hintText: "Password",
+                      controller: passwordController,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Password cannot be empty';
+                        }
+                        if (value.length < 6) {
+                          return 'Password must be at least 6 characters long';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Pole Confirm Password
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 5),
+                    child: PasswordTextFormField(
+                      hintText: "Confirm password",
+                      controller: confirmPasswordController,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Confirm password cannot be empty';
+                        }
+                        if (value != passwordController.text) {
+                          return 'Passwords do not match';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+
+                  // Przycisk Sign Up
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 5),
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        // Sprawdzamy, czy wszystkie pola są poprawne
+                        if (_formKey.currentState!.validate()) {
+                          final user = User(
+                            username: usernameController.text.trim(),
+                            email: emailController.text.trim(),
+                            password: passwordController.text.trim(),
+                          );
+
+                          try {
+                            // Rejestracja użytkownika w SQLite
+                            await DatabaseHelper.instance.registerUser(user);
+
+                            // Powiadomienie o sukcesie
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text("Registration successful!")),
+                            );
+
+                            // Powrót do widoku logowania
+                            Navigator.pop(context);
+                          } catch (e) {
+                            // Obsługa błędów (np. istniejący e-mail)
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text("Error: $e")),
+                            );
+                          }
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        minimumSize: const Size(double.infinity, 50),
+                        backgroundColor: MyColors.purpleColor,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                      ),
+                      child: const Text(
+                        'Sign Up',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),
