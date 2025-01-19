@@ -105,7 +105,8 @@ class _LoginViewState extends State<LoginView> {
                       // Przekierowanie do HomeView po poprawnym logowaniu
                       Navigator.pushReplacement(
                         context,
-                        MaterialPageRoute(builder: (context) => const HomeView()),
+                        MaterialPageRoute(builder: (context) => HomeView(userEmail: emailController.text.trim()),
+                        )
                       );
                     } else {
                       // Wyświetlenie błędu logowania

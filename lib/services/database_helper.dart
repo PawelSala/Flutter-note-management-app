@@ -1,6 +1,7 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import '../models/user.dart';
+import '../models/note.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._init();
@@ -10,7 +11,7 @@ class DatabaseHelper {
 
   Future<Database> get database async {
     if (_database != null) return _database!;
-    _database = await _initDB('users.db');
+    _database = await _initDB('app.db'); // Zmieniono nazwę bazy na bardziej ogólną
     return _database!;
   }
 
@@ -26,6 +27,7 @@ class DatabaseHelper {
   }
 
   Future _createDB(Database db, int version) async {
+    // Tworzenie tabeli użytkowników
     const userTable = '''
       CREATE TABLE users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -34,9 +36,23 @@ class DatabaseHelper {
         password TEXT NOT NULL
       )
     ''';
+
+    // Tworzenie tabeli notatek
+    const notesTable = '''
+      CREATE TABLE notes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        content TEXT NOT NULL,
+        userEmail TEXT NOT NULL,
+        FOREIGN KEY (userEmail) REFERENCES users (email) ON DELETE CASCADE
+      )
+    ''';
+
     await db.execute(userTable);
+    await db.execute(notesTable);
   }
 
+  // Metody dla użytkowników
   Future<int> registerUser(User user) async {
     final db = await instance.database;
     return await db.insert('users', user.toMap());
@@ -55,5 +71,39 @@ class DatabaseHelper {
     } else {
       return null;
     }
+  }
+
+  // Metody dla notatek
+  Future<int> addNote(Note note) async {
+    final db = await instance.database;
+    return await db.insert('notes', note.toMap());
+  }
+
+  Future<List<Note>> getUserNotes(String userEmail) async {
+    final db = await instance.database;
+    final result = await db.query(
+      'notes',
+      where: 'userEmail = ?',
+      whereArgs: [userEmail],
+    );
+    return result.map((map) => Note.fromMap(map)).toList();
+  }
+
+  Future<int> deleteNote(int id) async {
+    final db = await instance.database;
+    return await db.delete(
+      'notes',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  Future<int> deleteAllNotes(String userEmail) async {
+    final db = await instance.database;
+    return await db.delete(
+      'notes',
+      where: 'userEmail = ?',
+      whereArgs: [userEmail],
+    );
   }
 }
