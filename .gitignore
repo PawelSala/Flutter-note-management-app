@@ -1,0 +1,23 @@
+# Flutter generated files
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+build/
+ios/Pods/
+android/.gradle/
+android/app/build/
+.idea/
+.metadata
+*.iml
+
+# System files
+.DS_Store
+
+# IntelliJ / Android Studio
+*.iml
+*.ipr
+*.iws
+
+# VSCode
+.vscode/
