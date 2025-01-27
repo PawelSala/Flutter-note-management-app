@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:trzecia_proba/Views/Login/login_view.dart';
+import 'package:trzecia_proba/utils/my_colors.dart';
 import '../../models/note.dart';
 import '../../services/database_helper.dart';
 import 'add_note_view.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeView extends StatefulWidget {
   final String userEmail;
@@ -31,13 +33,21 @@ class _HomeViewState extends State<HomeView> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Twoje notatki"),
-        backgroundColor: Colors.purple,
+        backgroundColor: MyColors.purpleColor,
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout),
+            icon: const Icon(Icons.logout,
+            color: Colors.red,
+            ),
             tooltip: 'Wyloguj',
-            onPressed: () {
-              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const LoginView()));
+            onPressed: () async {
+              final prefs = await SharedPreferences.getInstance();
+              await prefs.remove('isLoggedIn');
+              await prefs.remove('userEmail');
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const LoginView()),
+              );
             },
           ),
         ],
@@ -61,14 +71,36 @@ class _HomeViewState extends State<HomeView> {
               return ListTile(
                 title: Text(note.title),
                 subtitle: Text(note.content),
-                trailing: IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.red),
-                  onPressed: () async {
-                    await DatabaseHelper.instance.deleteNote(note.id!);
-                    setState(() {
-                      _fetchNotes();
-                    });
-                  },
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.edit, color: Colors.blue),
+                      onPressed: () async {
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => AddNoteView(
+                              userEmail: widget.userEmail,
+                              note: note,
+                            ),
+                          ),
+                        );
+                        setState(() {
+                          _fetchNotes();
+                        });
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      onPressed: () async {
+                        await DatabaseHelper.instance.deleteNote(note.id!);
+                        setState(() {
+                          _fetchNotes();
+                        });
+                      },
+                    ),
+                  ],
                 ),
               );
             },
@@ -76,7 +108,8 @@ class _HomeViewState extends State<HomeView> {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.purple,
+        backgroundColor: MyColors.purpleColor,
+        foregroundColor: Colors.red,
         onPressed: () {
           Navigator.push(
             context,

@@ -8,21 +8,20 @@ import '../widgets/password_text_form_field.dart';
 class RegisterView extends StatelessWidget {
   RegisterView({super.key});
 
-  // Kontrolery tekstowe do przechowywania danych wejściowych
+
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController = TextEditingController();
 
-  // Klucz formularza do walidacji
+
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  // Prosta funkcja walidująca adres e-mail
   String? validateEmail(String? value) {
     if (value == null || value.isEmpty) {
       return 'Email cannot be empty';
     }
-    // Proste wyrażenie regularne do walidacji e-maila
+
     final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+$');
     if (!emailRegex.hasMatch(value)) {
       return 'Enter a valid email';
@@ -54,7 +53,7 @@ class RegisterView extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Tytuł
+
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 10),
                     child: Text(
@@ -68,7 +67,7 @@ class RegisterView extends StatelessWidget {
                   ),
                   const SizedBox(height: 30),
 
-                  // Pole Username
+
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 5),
                     child: BasicTextFormField(
@@ -85,7 +84,7 @@ class RegisterView extends StatelessWidget {
                   ),
                   const SizedBox(height: 20),
 
-                  // Pole Email
+
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 5),
                     child: BasicTextFormField(
@@ -97,7 +96,7 @@ class RegisterView extends StatelessWidget {
                   ),
                   const SizedBox(height: 20),
 
-                  // Pole Password
+
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 5),
                     child: PasswordTextFormField(
@@ -116,7 +115,7 @@ class RegisterView extends StatelessWidget {
                   ),
                   const SizedBox(height: 20),
 
-                  // Pole Confirm Password
+
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 5),
                     child: PasswordTextFormField(
@@ -135,12 +134,12 @@ class RegisterView extends StatelessWidget {
                   ),
                   const SizedBox(height: 30),
 
-                  // Przycisk Sign Up
+
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 5),
                     child: ElevatedButton(
                       onPressed: () async {
-                        // Sprawdzamy, czy wszystkie pola są poprawne
+
                         if (_formKey.currentState!.validate()) {
                           final user = User(
                             username: usernameController.text.trim(),
@@ -149,18 +148,18 @@ class RegisterView extends StatelessWidget {
                           );
 
                           try {
-                            // Rejestracja użytkownika w SQLite
+
                             await DatabaseHelper.instance.registerUser(user);
 
-                            // Powiadomienie o sukcesie
+
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(content: Text("Registration successful!")),
                             );
 
-                            // Powrót do widoku logowania
+
                             Navigator.pop(context);
                           } catch (e) {
-                            // Obsługa błędów (np. istniejący e-mail)
+
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(content: Text("Error: $e")),
                             );

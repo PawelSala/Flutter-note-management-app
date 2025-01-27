@@ -1,21 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:trzecia_proba/utils/my_colors.dart';
 import '../../models/note.dart';
 import '../../services/database_helper.dart';
 
 class AddNoteView extends StatelessWidget {
   final String userEmail;
+  final Note? note;
 
-  AddNoteView({super.key, required this.userEmail});
+  AddNoteView({super.key, required this.userEmail, this.note});
 
   final TextEditingController titleController = TextEditingController();
   final TextEditingController contentController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
+    if (note != null) {
+      titleController.text = note!.title;
+      contentController.text = note!.content;
+    }
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Dodaj notatkę"),
-        backgroundColor: Colors.purple,
+        title: Text(note == null ? "Dodaj notatkę" : "Edytuj notatkę"),
+        backgroundColor: MyColors.purpleColor,
       ),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
@@ -34,20 +41,51 @@ class AddNoteView extends StatelessWidget {
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () async {
-                final note = Note(
-                  title: titleController.text,
-                  content: contentController.text,
-                  userEmail: userEmail,
-                );
-                await DatabaseHelper.instance.addNote(note);
+                if (titleController.text.trim().isEmpty ||
+                    contentController.text.trim().isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text("Tytuł i treść nie mogą być puste!"),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                  return;
+                }
 
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Notatka dodana!")),
-                );
-                Navigator.pop(context); // Powrót do poprzedniego widoku
+                if (note == null) {
+                  final newNote = Note(
+                    title: titleController.text.trim(),
+                    content: contentController.text.trim(),
+                    userEmail: userEmail,
+                  );
+                  await DatabaseHelper.instance.addNote(newNote);
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Notatka dodana!")),
+                  );
+                } else {
+                  final updatedNote = Note(
+                    id: note!.id,
+                    title: titleController.text.trim(),
+                    content: contentController.text.trim(),
+                    userEmail: userEmail,
+                  );
+                  await DatabaseHelper.instance.updateNote(updatedNote);
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Notatka zaktualizowana!")),
+                  );
+                }
+
+                Navigator.pop(context);
               },
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.purple),
-              child: const Text("Dodaj"),
+              style: ElevatedButton.styleFrom(backgroundColor: MyColors.purpleColor),
+              child: Text(note == null ? "Dodaj" : "Zaktualizuj",
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold
+                ),
+              ),
             ),
           ],
         ),

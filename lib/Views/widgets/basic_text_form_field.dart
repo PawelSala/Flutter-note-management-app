@@ -3,22 +3,22 @@ import 'package:flutter/material.dart';
 class BasicTextFormField extends StatelessWidget {
   final String hintText;
   final IconData prefixIcon;
-  final TextEditingController? controller; // Dodano obsługę controller
-  final String? Function(String?)? validator; // Opcjonalny walidator
+  final TextEditingController? controller;
+  final String? Function(String?)? validator;
 
   const BasicTextFormField({
     super.key,
     required this.hintText,
     required this.prefixIcon,
-    this.controller, // Przyjmuje controller jako argument
-    this.validator, // Przyjmuje opcjonalny walidator
+    this.controller,
+    this.validator,
   });
 
   @override
   Widget build(BuildContext context) {
     return TextFormField(
-      controller: controller, // Przypisanie controller
-      validator: validator, // Obsługa walidatora
+      controller: controller,
+      validator: validator,
       decoration: InputDecoration(
         hintText: hintText,
         prefixIcon: Icon(

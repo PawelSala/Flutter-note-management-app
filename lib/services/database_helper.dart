@@ -11,7 +11,7 @@ class DatabaseHelper {
 
   Future<Database> get database async {
     if (_database != null) return _database!;
-    _database = await _initDB('app.db'); // Zmieniono nazwę bazy na bardziej ogólną
+    _database = await _initDB('app.db');
     return _database!;
   }
 
@@ -27,7 +27,7 @@ class DatabaseHelper {
   }
 
   Future _createDB(Database db, int version) async {
-    // Tworzenie tabeli użytkowników
+
     const userTable = '''
       CREATE TABLE users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -37,7 +37,7 @@ class DatabaseHelper {
       )
     ''';
 
-    // Tworzenie tabeli notatek
+
     const notesTable = '''
       CREATE TABLE notes (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -52,7 +52,7 @@ class DatabaseHelper {
     await db.execute(notesTable);
   }
 
-  // Metody dla użytkowników
+
   Future<int> registerUser(User user) async {
     final db = await instance.database;
     return await db.insert('users', user.toMap());
@@ -73,7 +73,7 @@ class DatabaseHelper {
     }
   }
 
-  // Metody dla notatek
+
   Future<int> addNote(Note note) async {
     final db = await instance.database;
     return await db.insert('notes', note.toMap());
@@ -106,4 +106,15 @@ class DatabaseHelper {
       whereArgs: [userEmail],
     );
   }
+
+  Future<int> updateNote(Note note) async {
+    final db = await instance.database;
+    return await db.update(
+      'notes',
+      note.toMap(),
+      where: 'id = ?',
+      whereArgs: [note.id],
+    );
+  }
+
 }

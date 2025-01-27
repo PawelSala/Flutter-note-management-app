@@ -6,6 +6,7 @@ import '../Home/home_view.dart';
 import '../Register/register_view.dart';
 import '../widgets/basic_text_form_field.dart';
 import '../widgets/password_text_form_field.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -95,21 +96,27 @@ class _LoginViewState extends State<LoginView> {
                 padding: formFieldPadding,
                 child: ElevatedButton(
                   onPressed: () async {
-                    // Logika logowania
+
                     final user = await DatabaseHelper.instance.loginUser(
                       emailController.text.trim(),
                       passwordController.text.trim(),
                     );
 
                     if (user != null) {
-                      // Przekierowanie do HomeView po poprawnym logowaniu
+
+                      final prefs = await SharedPreferences.getInstance();
+                      await prefs.setBool('isLoggedIn', true);
+                      await prefs.setString('userEmail', user.email);
+
+
                       Navigator.pushReplacement(
                         context,
-                        MaterialPageRoute(builder: (context) => HomeView(userEmail: emailController.text.trim()),
-                        )
+                        MaterialPageRoute(
+                          builder: (context) => HomeView(userEmail: user.email),
+                        ),
                       );
                     } else {
-                      // Wyświetlenie błędu logowania
+
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text("Invalid email or password")),
                       );
@@ -132,9 +139,7 @@ class _LoginViewState extends State<LoginView> {
                 ),
               ),
 
-              const Spacer(), // Przestrzeń zajmująca resztę miejsca między górą a dołem
-
-              // "Don't have an account? Sign up" wyrównane na dole ekranu
+              const Spacer(),
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 20),
                 child: GestureDetector(
